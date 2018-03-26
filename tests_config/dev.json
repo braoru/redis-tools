@@ -1,0 +1,7 @@
+{
+  "container_name" : "redis",
+  "service_name" : "redis",
+  "redis_timeout": 75,
+  "monit_timeout": 10,
+  "ports": ["6379"]
+}
