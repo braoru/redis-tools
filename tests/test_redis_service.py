@@ -63,6 +63,22 @@ class TestServiceRedis():
         logger.info("Checking that the value of the counter {ctr} correctly incremented".format(ctr=test_counter))
         assert test_counter_value + 1 == ctr_value
 
+        r.delete(test_key)
+        logger.info("Redis: delete {key}".format(key=test_key))
+        no_value = r.get(test_key)
+        logger.info("Redis: get {key}".format(key=test_key))
+
+        logger.info("Checking that the key {key} was correctly removed".format(key=test_key))
+        assert no_value == None
+
+        r.delete(test_counter)
+        logger.info("Redis: delete {key}".format(key=test_counter))
+        no_counter = r.get(test_counter)
+        logger.info("Redis: get {key}".format(key=test_counter))
+
+        logger.info("Checking that the counter {key} was correctly removed".format(key=test_counter))
+        assert no_counter == None
+
     def test_data_consistency(self, settings, redis_settings):
         """
         Test to check that the modifications done in Redis are present after the container was stopped.
@@ -118,3 +134,11 @@ class TestServiceRedis():
 
         logger.info("Checking that the retrieved value is the one that was inserted")
         assert check_value == test_value
+
+        r.delete(test_key)
+        logger.info("Redis: delete {key}".format(key=test_key))
+        no_value = r.get(test_key)
+        logger.info("Redis: get {key}".format(key=test_key))
+
+        logger.info("Checking that the key {key} was correctly removed".format(key=test_key))
+        assert no_value == None
