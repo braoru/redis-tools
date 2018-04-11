@@ -23,6 +23,7 @@ logger.setLevel(logging.DEBUG)
 
 
 @pytest.mark.usefixtures('redis_settings', scope='class')
+@pytest.mark.usefixtures('settings', scope='class')
 class TestServiceRedis():
     """
         Class to test the redis service.
@@ -37,6 +38,7 @@ class TestServiceRedis():
         redis_port = redis_settings["redis_port"]
         redis_host = redis_settings["redis_host"]
         redis_auth = redis_settings["redis_auth"]
+
         test_key = "test_key"
         test_value = "test_value"
         test_counter = "ctr"
@@ -89,9 +91,11 @@ class TestServiceRedis():
 
         container_name = settings['container_name']
         service_name = settings['service_name']
+
         redis_port = redis_settings["redis_port"]
         redis_host = redis_settings["redis_host"]
         redis_auth = redis_settings["redis_auth"]
+
         test_key = "test_key2"
         test_value = "test_value2"
 
@@ -137,6 +141,7 @@ class TestServiceRedis():
 
         r.delete(test_key)
         logger.info("Redis: delete {key}".format(key=test_key))
+
         no_value = r.get(test_key)
         logger.info("Redis: get {key}".format(key=test_key))
 

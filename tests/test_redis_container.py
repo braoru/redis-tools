@@ -21,7 +21,7 @@ logging.basicConfig(
     datefmt='%m/%d/%Y %I:%M:%S %p'
 )
 logger = logging.getLogger("redis_tools.tests.test_redis_container")
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 
 @pytest.mark.usefixtures('settings', scope='class')
@@ -49,6 +49,7 @@ class TestContainerRedis():
 
         # check the return value
         redis_status = check_service().stdout.decode("utf-8")
+        logger.debug(redis_status)
 
         status = re.search(active_status, redis_status)
         assert status is not None
@@ -72,6 +73,7 @@ class TestContainerRedis():
 
         # check the return value
         monit_status = check_service().stdout.decode("utf-8")
+        logger.debug(monit_status)
 
         status = re.search(active_status, monit_status)
         assert status is not None
@@ -115,6 +117,7 @@ class TestContainerRedis():
         while (tic_tac < max_timeout) and (redis_is_up == False):
             # check if monit started redis
             time.sleep(1)
+
             check_service = docker.bake("exec", "-i", container_name, "systemctl", "status", service_name)
             logger.info("Check to see if {service} started after {time} seconds".format(service=service_name, time=tic_tac))
             logger.debug(check_service)
@@ -127,6 +130,7 @@ class TestContainerRedis():
 
             except Exception as e:
                 tic_tac = tic_tac + 1
+
         assert redis_is_up == True
 
     def test_monit_restarts_killed_redis(self, settings):
@@ -150,6 +154,7 @@ class TestContainerRedis():
 
         while (tic_tac < max_timeout) and (redis_is_up == False):
             # check if monit started redis
+
             time.sleep(1)
             check_service = docker.bake("exec", "-i", container_name, "systemctl", "status", service_name)
             logger.info("Check to see if {service} started after {time} seconds".format(service=service_name, time=tic_tac))
@@ -163,6 +168,7 @@ class TestContainerRedis():
 
             except Exception as e:
                 tic_tac = tic_tac + 1
+
         assert redis_is_up == True
 
     def test_no_error_monit_log(self, settings):
@@ -184,18 +190,24 @@ class TestContainerRedis():
         restart_docker = docker.bake("start", container_name)
         logger.debug(restart_docker)
         restart_docker()
+
         time.sleep(2)
 
         # docker inspect --format='{{.State.Status}} container
         check_status = docker.bake("inspect", "--format='{{.State.StartedAt}}'", container_name)
         logger.debug(check_status)
+
         last_started_date = dateutil.parser.parse(check_status().stdout.rstrip()).replace(tzinfo=None)
+        logger.debug(last_started_date)
 
         # check in journalctl if there are any errors since the container last started
         get_monit_log = docker.bake("exec", container_name, "journalctl", "-u", "monit", "--since", last_started_date,
                                     "-p", "err", "-b")
         logger.debug(get_monit_log)
+
         monit_log = get_monit_log().stdout.decode("utf-8")
+        logger.debug(monit_log)
+
         assert re.search(no_error_status, monit_log) is not None
 
     def test_systemd_restarts_monit(self, settings):
@@ -220,6 +232,7 @@ class TestContainerRedis():
         while (tic_tac < max_timeout) and (monit_is_up == False):
             # check if systemd starts monit
             time.sleep(1)
+
             check_service = docker.bake("exec", "-i", container_name, "systemctl", "status", service_name)
             logger.info("Check to see if {service} started after {time} seconds".format(service=service_name, time=tic_tac))
             logger.debug(check_service)
@@ -232,6 +245,7 @@ class TestContainerRedis():
 
             except Exception as e:
                 tic_tac = tic_tac + 1
+
         assert monit_is_up == True
 
     def test_container_exposed_ports(self, settings):
@@ -246,7 +260,9 @@ class TestContainerRedis():
 
         check_ports = docker.bake("inspect", "--format='{{.Config.ExposedPorts}}'", container_name)
         logger.debug(check_ports)
+
         exposed_ports = check_ports().stdout.decode("utf-8")
+        logger.debug(exposed_ports)
 
         for port in ports:
             assert re.search(port, exposed_ports) is not None
@@ -270,6 +286,7 @@ class TestContainerRedis():
 
         # check the return value
         monit_restart = check_monit_restart().stdout.decode("utf-8")
+        logger.debug(monit_restart)
 
         status = re.search(restart_status, monit_restart)
         assert status is not None
